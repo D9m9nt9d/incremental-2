@@ -7,7 +7,7 @@ function CurrencyRow(
 ) {
   const [state, setState] = useState(formatCurrency(Currencies[name].Value))
   Currencies[name].states[name + stateName] = setState
-  
+
   return (
     <div >
       {name}: {state}
@@ -23,8 +23,8 @@ function CurrencyList(
 
   if (!hideRows) {
     currencies.forEach(currencyName => {
-      const currency = Currencies[currencyName]
-      if (currency.Value == 0) return;
+      // const currency = Currencies[currencyName]
+      // if (currency.Value.equals(0)) return;
 
       rows.push(
         <CurrencyRow
@@ -42,9 +42,9 @@ function CurrencyList(
 
   return (
     <div>
-      <button 
-      className="font-bold text-white bg-black px-2 py-1"
-      onClick={onClick}
+      <button
+        className="font-bold text-white bg-black px-2 py-1"
+        onClick={onClick}
       >{name + (hideRows ? ' (Hidden)' : '')}
       </button>
       {rows}
