@@ -7,7 +7,8 @@ interface CurrencyItem {
   Base: Decimal.Instance;
   Multis: Decimal.Instance;
   Category: string;
-  setState?: any;
+  Icon: string,
+  DisplayName: string,
   states: {
     [key: string]: (param: any) => void;
   };
@@ -16,17 +17,19 @@ interface CurrencyItem {
 type CurrencyName = keyof typeof Currencies;
 
 const Currencies = {
-  'Money': createCurrency(Decimal(0), 'Basic'),
-  'Gems': createCurrency(Decimal(23), 'Basic'),
-  'Crystals': createCurrency(Decimal(23), 'Secondary'),
+  'Money':    createCurrency('Basic',     'src/assets/money.svg', 'Money', Decimal(0)),
+  'Gems':     createCurrency('Basic',     '', 'Gems', Decimal(23)),
+  'Crystals': createCurrency('Secondary', 'src/assets/money.svg', 'Crystals', Decimal(64)),
 } satisfies Record<string, CurrencyItem>;
 
-function createCurrency(value: Decimal.Instance, category: string): CurrencyItem {
+function createCurrency(category: string, icon: string, displayName: string, value: Decimal.Instance): CurrencyItem {
   return {
     Value: value,
     Base: Decimal(0),
     Multis: Decimal(1),
     Category: category,
+    Icon: icon,
+    DisplayName: displayName,
     states: {},
   };
 };

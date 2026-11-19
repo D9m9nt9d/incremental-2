@@ -55,14 +55,14 @@ const Upgrades: { [key: string]: UpgradeItem } = {
       }),
       level({
         Description: 'Plus 1 money base.',
-        Cost: {'Money': Decimal(0.001)},
+        Cost: { 'Money': Decimal(0.0001), 'Gems': Decimal(0.0001), 'Crystals': Decimal(0.0001) },
         OnLoad: () => {
           Currencies.Money.Base = Currencies.Money.Base.plus(1)
         },
       }),
       level({
         Description: 'Plus 1000 money base.',
-        Cost: {'Money': Decimal(10)},
+        Cost: { 'Money': Decimal(1) },
         OnLoad: () => {
           Currencies.Money.Base = Currencies.Money.Base.plus(1000)
         },
@@ -71,23 +71,23 @@ const Upgrades: { [key: string]: UpgradeItem } = {
   }
 }
 
-const BoughtUpgrades: {[key: string]: number} = {
+const BoughtUpgrades: { [key: string]: number } = {
   // '#1': 2
 }
 
 function buyUpgrade(id: string) {
   const upgInfo = Upgrades[id]
   let level = BoughtUpgrades[id] || 0
-  
+
   const lvls = upgInfo.Levels
-  let lvlInfo = lvls[level]
+  const lvlInfo = lvls[level]
 
   const Maxed = !lvlInfo
   if (Maxed) return [false, 'Upgrade is at max level']
 
   if (lvlInfo.Check) {
     const reason = lvlInfo.Check()
-    if (reason!=true) return [false, reason]
+    if (reason != true) return [false, reason]
   }
 
   if (lvlInfo.Cost) {
@@ -107,7 +107,11 @@ function buyUpgrade(id: string) {
   level += 1
   BoughtUpgrades[id] = level
   upgInfo.setState?.(level)
-  lvlInfo.OnBought()
+  try { lvlInfo.OnBought() }
+  catch (e) {
+    console.warn(`buyUpgrade - id: ${id}, lvl: ${level}, error: See below`)
+    console.error(e)
+  }
 
   return [true, 'Success']
 }
@@ -120,12 +124,16 @@ function loadUpgrade(id: string, level: number) {
   // console.log(upgInfo)
   // console.log(lvls)
 
-  for (let i=0; i<=level-1; i++) {
+  for (let i = 0; i <= level - 1; i++) {
     // console.log(i)
-    lvls[i].OnLoad()
+    try { lvls[i].OnLoad() }
+    catch (e) {
+      console.warn(`loadUpgrade - id: ${id}, lvl: ${level}, error: See below`)
+      console.error(e)
+    }
   }
 
-   upgInfo.setState?.(level)
+  upgInfo.setState?.(level)
 }
 
 for (const id in BoughtUpgrades) {

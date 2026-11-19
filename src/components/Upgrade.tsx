@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { BoughtUpgrades, buyUpgrade, Upgrades } from '../scripts/upgrades'
-import './Upgrade.css'
+import { Fragment, useState } from 'react'
+import { BoughtUpgrades, buyUpgrade, Upgrades } from '../scripts/upgrades.ts'
+import Currency from './Currency.tsx'
+import { formatCurrency, type CurrencyName } from '../scripts/currencies'
 
 function Upgrade({ id }: {
   id: string
@@ -25,6 +26,31 @@ function Upgrade({ id }: {
     }
   }
 
+  let cost = null
+  if (Maxed) {
+    cost = ''
+  } else if (lvlInfo.CostLabel) {
+    cost = lvlInfo.CostLabel
+  } else if (lvlInfo.Cost) {
+    cost = []
+    const divider = ', '
+    const keys = Object.keys(lvlInfo.Cost) as CurrencyName[]
+    const lastKey = keys[keys.length - 1]
+
+    for (const key in lvlInfo.Cost) {
+      const currency = key as CurrencyName
+      const needed = lvlInfo.Cost[currency]!
+      cost.push(
+        <Fragment key={currency}>
+          <Currency id={currency} text={formatCurrency(needed)} />
+          {currency !== lastKey && (
+            <span className='whitespace-pre-wrap'>{divider}</span>
+          )}
+        </Fragment>
+      )
+    }
+  }
+
   return (
     <div className='w-[260px] rounded-md bg-gray-200 border-3 border-gray-300'>
       <div className='py-1 px-2 flex flex-row justify-between'>
@@ -39,9 +65,11 @@ function Upgrade({ id }: {
         '>
         {lvlInfo.Description}
       </div>
-      <div className={'py-1 px-2 flex flex-row justify-between '+ (Maxed ? '' : 'cursor-pointer')}
+      <div className={'py-1 px-2 flex flex-row justify-between ' + (Maxed ? '' : 'cursor-pointer')}
         onClick={onClick}>
-        <div>{Maxed ? '' : lvlInfo.CostLabel}</div>
+        <div className='flex flex-row flex-wrap'>
+          {cost}
+        </div>
         <div>{Maxed ? 'Maxed!' : `${level}/${lvls.length}`}</div>
       </div>
     </div>

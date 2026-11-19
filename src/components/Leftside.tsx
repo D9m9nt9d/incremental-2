@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import './Leftside.css'
 import { Currencies, formatCurrency, type CurrencyName } from '../scripts/currencies.ts';
+import Currency from './Currency.tsx';
+
 
 function CurrencyRow(
   { name, stateName }: { name: CurrencyName, stateName: string },
 ) {
   const [state, setState] = useState(formatCurrency(Currencies[name].Value))
-  Currencies[name].states[name + stateName] = setState
+
+  const currency = Currencies[name]
+  currency.states[name + stateName] = setState
 
   return (
-    <div >
-      {name}: {state}
-    </div>
+    <Currency
+      id={name}
+      text={state} />
   );
 }
 
@@ -75,7 +78,7 @@ function Leftside() {
   }
 
   return (
-    <div id="left-side">
+    <div>
       {lists}
     </div>
   )
