@@ -1,12 +1,14 @@
-import Decimal from "decimal.js"
+import { Decimal as D } from "decimal.js"
 import { addCurrency, Currencies, setCurrency, type CurrencyName } from "./currencies.ts"
+import type { ReactNode } from "react"
+import Currency from "../components/Currency.tsx"
 
-type Cost = Partial<Record<CurrencyName, Decimal.Instance>>
+type Cost = Partial<Record<CurrencyName, D.Instance>>
 type Check = () => true | string
 type OnBought = (loaded: boolean, level: number) => void
 
 interface UpgradeLevel {
-  Description: string
+  Description: ReactNode
   OnBought: OnBought
   Cost?: Cost
   Check?: Check
@@ -22,7 +24,7 @@ type UpgradeItem = {
 }
 
 function level({ Description, Cost, Check, CostLabel, OnBought }: {
-  Description: string
+  Description: ReactNode
   Cost?: Cost
   Check?: Check
   CostLabel?: string
@@ -59,60 +61,47 @@ function levels(amount: number, { Description, Cost, Check, CostLabel, OnBought 
   return lvls
 }
 
+// Different fonts have different letter heights so basic font -> currency with cursive (for example) -> basic font looks ugly 
+
 const Upgrades: { [key: string]: UpgradeItem } = {
   '#1': {
     Label: 'The grand start',
     Levels: [
       level({
-        Description: 'Start generating 0.0001 money per second.',
-        Check: () => true,
-        CostLabel: 'Free!',
+        Description: <>Start generating&#8201;<Currency id='Money' text="0.0001"/> per second</>,
+        CostLabel: 'Free!', Check: () => true,
         OnBought: () => {
           Currencies.Money.Base = Currencies.Money.Base.plus(0.0001)
           setInterval(() => addCurrency('Money'), 1000);
         },
       }),
       level({
-        Description: 'Plus 1 money base.',
-        Cost: { 'Money': Decimal(0.0001), 'Gems': Decimal(0.0001), 'Crystals': Decimal(0.0001) },
-        OnBought: () => {
-          Currencies.Money.Base = Currencies.Money.Base.plus(1)
-        },
-      }),
-      level({
-        Description: 'Plus 10 money base.',
-        Cost: { 'Money': Decimal(1) },
-        OnBought: () => {
-          Currencies.Money.Base = Currencies.Money.Base.plus(10)
-        },
-      }),
-    ],
-    Requirements: [],
-    Unlocks: [],
-  },
-  '#2': {
-    Label: 'The grand start',
-    Levels: [
-      ...levels(10, {
-        Description: (i) => `Plus ${i} money base.`,
-        Cost: (i) => { return { 'Money': Decimal(i * 1) } },
-        OnBought: (i) => (load, level) => {
-          if (!load) { console.log('congrats on buying') }
-          Currencies.Money.Base = Currencies.Money.Base.plus(level)
-        }
-      }),
-      level({
-        Description: 'Plus 1000 money base.',
-        Cost: { 'Money': Decimal(1) },
-        OnBought: () => {
-          Currencies.Money.Base = Currencies.Money.Base.plus(1000)
-        },
+        Description: <><span className="font-[cursive]">Plus&#8201;</span><Currency id='Money' text="1K" /><span className="font-[cursive]"> base</span></>,
+        Cost: { 'Money': D(1000), 'Gems': D(100), 'Crystals': D(10) },
+        OnBought: () =>  Currencies.Money.Base = Currencies.Money.Base.plus(1000),
       })
     ],
-    Requirements: [],
-    Unlocks: [],
+    Requirements: [], Unlocks: [],
+  },
+  '#2': {
+    Label: 'The repetition',
+    Levels: [
+      ...levels(25, {
+        Description: (i) => `Plus ${i/10000} money base.`,
+        Cost: (i) => { return { 'Money': D(i*i/10000) } },
+        OnBought: (i) => (load, level) => Currencies.Money.Base = Currencies.Money.Base.plus(level/10000)
+      })
+    ],
+    Requirements: ['#1'], Unlocks: [],
   }
 }
+
+// Fill unlocks
+for (const upgId in Upgrades) {
+  Upgrades[upgId].Requirements.forEach(id => Upgrades[id].Unlocks.push(upgId))
+}
+
+console.log(Upgrades)
 
 const BoughtUpgrades: { [key: string]: number } = {
   // '#1': 2

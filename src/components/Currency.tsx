@@ -8,9 +8,9 @@ function Currency({ id, text }:
   return (
     <div className='flex flex-row items-center whitespace-pre-wrap'>
       { currency.Icon 
-      ? <img className='h-[16px]' src={currency.Icon} alt={currency.DisplayName} /> 
-      : `${currency.DisplayName}: ` }
-      {text}
+      ? <img className='h-[20px]' src={currency.Icon} alt={id} /> 
+      : `${id}: ` }
+      <span className={currency.className}>{text}</span>
     </div>
   )
 }

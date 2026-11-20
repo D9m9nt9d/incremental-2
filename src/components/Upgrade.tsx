@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react'
-import { BoughtUpgrades, buyUpgrade, Upgrades } from '../scripts/upgrades.ts'
+import { BoughtUpgrades, buyUpgrade, Upgrades } from '../scripts/upgrades.tsx'
 import Currency from './Currency.tsx'
 import { formatCurrency, type CurrencyName } from '../scripts/currencies'
 
@@ -42,17 +42,14 @@ function Upgrade({ id, className }: {
       const needed = lvlInfo.Cost[currency]!
       cost.push(
         <Fragment key={currency}>
-          <Currency id={currency} text={formatCurrency(needed)} />
-          {currency !== lastKey && (
-            <span className='whitespace-pre-wrap'>{divider}</span>
-          )}
+          <Currency id={currency} text={formatCurrency(needed) + (currency !== lastKey ? divider : '')} />
         </Fragment>
       )
     }
   }
 
   return (
-    <div className={'w-[260px] h-fit rounded-md bg-gray-200 border-3 border-gray-300 ' + (className ? className : '')}>
+    <div id={id} className={'w-[260px] h-fit rounded-md bg-gray-200 border-3 border-gray-300 ' + (className ? className : '')}>
       <div className='py-1 px-2 flex flex-row justify-between'>
         <div className=''>{id}</div>
         <div className='p'>{upgInfo.Label}</div>
@@ -61,15 +58,14 @@ function Upgrade({ id, className }: {
         overflow-y-auto scrollbar-thin scrollbar-gutter-both scrollbar-track-transparent
         transition-all transition-discrete duration-200 ease-in-out
         scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300
-        flex place-items-center-safe justify-center-safe
+        flex content-center-safe justify-center-safe
+        flex-row flex-wrap whitespace-pre-wrap
         '>
         {lvlInfo.Description}
       </div>
-      <div className={'py-1 px-2 flex flex-row justify-between ' + (Maxed ? '' : 'cursor-pointer')}
+      <div className={'py-1 px-2 flex flex-row justify-between select-none ' + (Maxed ? '' : 'cursor-pointer')}
         onClick={onClick}>
-        <div className='flex flex-row flex-wrap'>
-          {cost}
-        </div>
+        <div className='flex flex-row flex-wrap'>{cost}</div>
         <div>{Maxed ? 'Maxed!' : `${level}/${lvls.length}`}</div>
       </div>
     </div>
