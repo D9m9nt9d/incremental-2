@@ -3,41 +3,60 @@ import { addCurrency, Currencies, setCurrency, type CurrencyName } from "./curre
 
 type Cost = Partial<Record<CurrencyName, Decimal.Instance>>
 type Check = () => true | string
+type OnBought = (loaded: boolean, level: number) => void
 
 interface UpgradeLevel {
   Description: string
-  OnBought: () => void
-  OnLoad: () => void
+  OnBought: OnBought
   Cost?: Cost
   Check?: Check
   CostLabel?: string
-  Requirements: string[]
-  Unlocks: string[]
 }
 
 type UpgradeItem = {
   Label: string
   Levels: UpgradeLevel[]
+  Requirements: string[]
+  Unlocks: string[]
   setState?: (level: number) => void
 }
 
-function level({ Description, Cost, Requirements, Check, CostLabel, OnBought, OnLoad }: {
-  Description: string,
-  Cost?: Cost, Requirements?: string[]
-  Check?: Check, CostLabel?: string
-  OnBought?: () => void
-  OnLoad: () => void
+function level({ Description, Cost, Check, CostLabel, OnBought }: {
+  Description: string
+  Cost?: Cost
+  Check?: Check
+  CostLabel?: string
+  OnBought?: OnBought
 }) {
   return {
     Description: Description,
+    OnBought: OnBought,
     Cost: Cost,
-    OnBought: OnBought || OnLoad,
-    OnLoad: OnLoad,
-    Requirements: Requirements || [],
-    Unlocks: [],
     Check: Check,
-    CostLabel: CostLabel,
+    CostLabel: CostLabel
   } as UpgradeLevel
+}
+
+function levels(amount: number, { Description, Cost, Check, CostLabel, OnBought }: {
+  Description: (level: number) => string
+  Cost?: (level: number) => Cost
+  Check?: (level: number) => Check,
+  CostLabel?: (level: number) => string
+  OnBought: (level: number) => OnBought
+}) {
+  const lvls = []
+
+  for (let i = 1; i <= amount; i++) {
+    lvls.push({
+      Description: Description(i),
+      OnBought: OnBought(i),
+      Cost: Cost?.(i),
+      Check: Check?.(i),
+      CostLabel: CostLabel?.(i)
+    } as UpgradeLevel)
+  }
+
+  return lvls
 }
 
 const Upgrades: { [key: string]: UpgradeItem } = {
@@ -48,7 +67,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
         Description: 'Start generating 0.0001 money per second.',
         Check: () => true,
         CostLabel: 'Free!',
-        OnLoad: () => {
+        OnBought: () => {
           Currencies.Money.Base = Currencies.Money.Base.plus(0.0001)
           setInterval(() => addCurrency('Money'), 1000);
         },
@@ -56,18 +75,42 @@ const Upgrades: { [key: string]: UpgradeItem } = {
       level({
         Description: 'Plus 1 money base.',
         Cost: { 'Money': Decimal(0.0001), 'Gems': Decimal(0.0001), 'Crystals': Decimal(0.0001) },
-        OnLoad: () => {
+        OnBought: () => {
           Currencies.Money.Base = Currencies.Money.Base.plus(1)
         },
       }),
       level({
-        Description: 'Plus 1000 money base.',
+        Description: 'Plus 10 money base.',
         Cost: { 'Money': Decimal(1) },
-        OnLoad: () => {
-          Currencies.Money.Base = Currencies.Money.Base.plus(1000)
+        OnBought: () => {
+          Currencies.Money.Base = Currencies.Money.Base.plus(10)
         },
       }),
-    ]
+    ],
+    Requirements: [],
+    Unlocks: [],
+  },
+  '#2': {
+    Label: 'The grand start',
+    Levels: [
+      ...levels(10, {
+        Description: (i) => `Plus ${i} money base.`,
+        Cost: (i) => { return { 'Money': Decimal(i * 1) } },
+        OnBought: (i) => (load, level) => {
+          if (!load) { console.log('congrats on buying') }
+          Currencies.Money.Base = Currencies.Money.Base.plus(level)
+        }
+      }),
+      level({
+        Description: 'Plus 1000 money base.',
+        Cost: { 'Money': Decimal(1) },
+        OnBought: () => {
+          Currencies.Money.Base = Currencies.Money.Base.plus(1000)
+        },
+      })
+    ],
+    Requirements: [],
+    Unlocks: [],
   }
 }
 
@@ -107,7 +150,7 @@ function buyUpgrade(id: string) {
   level += 1
   BoughtUpgrades[id] = level
   upgInfo.setState?.(level)
-  try { lvlInfo.OnBought() }
+  try { lvlInfo.OnBought(false, level) }
   catch (e) {
     console.warn(`buyUpgrade - id: ${id}, lvl: ${level}, error: See below`)
     console.error(e)
@@ -126,7 +169,7 @@ function loadUpgrade(id: string, level: number) {
 
   for (let i = 0; i <= level - 1; i++) {
     // console.log(i)
-    try { lvls[i].OnLoad() }
+    try { lvls[i].OnBought(true, i) }
     catch (e) {
       console.warn(`loadUpgrade - id: ${id}, lvl: ${level}, error: See below`)
       console.error(e)

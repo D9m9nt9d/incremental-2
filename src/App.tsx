@@ -1,14 +1,12 @@
-import './App.css'
 import Leftside from './components/Leftside.tsx'
-import Upgrade from './components/Upgrade.tsx'
+import Middle from './components/Middle.tsx'
 
 function App() {
   return (
-    <>
+    <div className="flex flex-row">
       <Leftside />
-      <Upgrade 
-        id={'#1'}/>
-    </>
+      <Middle />
+    </div>
   )
 }
 

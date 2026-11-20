@@ -52,9 +52,8 @@ function addCurrency(name: CurrencyName) {
 
 const SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Vg'];
 
-function formatCurrency(value: Decimal.Value, places = 2): string {
-  const n = new Decimal(value);
-  let abs = n.abs();
+function formatCurrency(value: Decimal.Instance, places = 2): string {
+  let abs = value.abs();
   let tier = 0;
 
   while (abs.gte(1000) && tier < SUFFIXES.length - 1) {
@@ -62,7 +61,7 @@ function formatCurrency(value: Decimal.Value, places = 2): string {
     tier++;
   }
 
-  if (tier==0) return n.toDecimalPlaces(5).toString()
+  if (tier==0) return value.toDecimalPlaces(5).toString()
 
   let rounded = abs.toDecimalPlaces(places, Decimal.ROUND_HALF_UP);
 
@@ -72,7 +71,7 @@ function formatCurrency(value: Decimal.Value, places = 2): string {
     tier++;
   }
 
-  const sign = n.isNegative() && !rounded.isZero() ? '-' : '';
+  const sign = value.isNegative() && !rounded.isZero() ? '-' : '';
   return sign + rounded.toFixed(places) + SUFFIXES[tier];
 }
 

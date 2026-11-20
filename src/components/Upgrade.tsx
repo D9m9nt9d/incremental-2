@@ -3,8 +3,8 @@ import { BoughtUpgrades, buyUpgrade, Upgrades } from '../scripts/upgrades.ts'
 import Currency from './Currency.tsx'
 import { formatCurrency, type CurrencyName } from '../scripts/currencies'
 
-function Upgrade({ id }: {
-  id: string
+function Upgrade({ id, className }: {
+  id: string, className?: string
 }) {
   const [level, setLevel] = useState(BoughtUpgrades[id] || 0)
 
@@ -52,7 +52,7 @@ function Upgrade({ id }: {
   }
 
   return (
-    <div className='w-[260px] rounded-md bg-gray-200 border-3 border-gray-300'>
+    <div className={'w-[260px] h-fit rounded-md bg-gray-200 border-3 border-gray-300 ' + (className ? className : '')}>
       <div className='py-1 px-2 flex flex-row justify-between'>
         <div className=''>{id}</div>
         <div className='p'>{upgInfo.Label}</div>

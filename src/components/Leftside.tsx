@@ -78,7 +78,7 @@ function Leftside() {
   }
 
   return (
-    <div>
+    <div className="min-w-[120px]">
       {lists}
     </div>
   )
