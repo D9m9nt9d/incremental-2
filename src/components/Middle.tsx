@@ -1,9 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react"
+import { useLayoutEffect, useRef, type ReactNode } from "react"
 import Upgrade from "./Upgrade.tsx"
-import { Upgrades, useGameState } from "../scripts/upgrades.tsx"
-import { clamp } from "../scripts/utils.ts"
-import { changeMulti } from "../scripts/currencies.ts"
-import { flushSync } from "react-dom"
+import { gameStates, setGameState, Upgrades, useGameState } from "../scripts/upgrades.tsx"
 
 function Row({ children, className }: {
   children?: ReactNode, className?: string
@@ -17,7 +14,7 @@ function Bar({ percent }: { percent: number }) {
   return (
     <div className="relative h-6 border-2 border-r-0 border-black bg-white">
       <div
-        className={`h-full transition-[width,background-color] ease-linear duration-100 ${percent > 81 ? "bg-green-400" : "bg-lime-400"
+        className={`h-full transition-[width,background-color] ease-linear duration-100 ${percent > 80 ? "bg-green-400" : "bg-lime-400"
           }`}
         style={{ width: `${percent}%` }}
       />
@@ -33,21 +30,12 @@ function Bar({ percent }: { percent: number }) {
 }
 
 function MoneyBoostingMachine() {
-  const [state, setState] = useState(0)
-
-  const multiplier = 1 + state / 100 * 4
-  changeMulti('Money', 'MoneyBoostingMachine', multiplier)
+  const percentage = useGameState('BMBpercents')
+  const multiplier = gameStates.BMBpercents.func?.(percentage)
 
   function onClick() {
-    setState(prev => clamp(prev + 7, 0, 100))
+    setGameState('BMBpercents', (prev: any) => Math.min(prev + 7, 100))
   }
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setState(prev => clamp(prev - 1, 0, 100))
-    }, 100)
-    return () => clearInterval(id)
-  }, [])
 
   return (
     <div className="w-72 flex flex-col gap-3 p-4 border-3
@@ -59,7 +47,7 @@ function MoneyBoostingMachine() {
         </span>
       </div>
 
-      <Bar percent={state} />
+      <Bar percent={percentage} />
 
       <button
         onClick={onClick}
@@ -72,7 +60,7 @@ function MoneyBoostingMachine() {
 }
 
 function Basic() {
-  const [hasBoostMachine] = useGameState('HasBoostMachine')
+  const hasBoostMachine = useGameState('HasMBM')
 
   return (
     <div className="
@@ -89,6 +77,11 @@ function Basic() {
       <Row className="mt-12">
         <Upgrade className="mt-2 mr-12" id={'#5'} />
         {hasBoostMachine && <MoneyBoostingMachine />}
+      </Row>
+      <Row className="mt-15">
+        <Upgrade className="" id={'#6'} />
+        <Upgrade className="mx-5" id={'#7'} />
+        <Upgrade className="" id={'#8'} />
       </Row>
     </div>
   )

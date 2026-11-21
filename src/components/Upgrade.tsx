@@ -31,6 +31,12 @@ function Upgrade({ id, className }: {
     }
   }
 
+  function onRightClick(e: React.MouseEvent<HTMLDivElement>) {
+    e.preventDefault()
+    let [success] = buyUpgrade(id)
+    while (success) [success] = buyUpgrade(id)
+  }
+
   let cost = null
   if (Maxed) {
     cost = ''
@@ -69,7 +75,7 @@ function Upgrade({ id, className }: {
         {lvlInfo.Description}
       </div>
       <div className={'py-1 px-2 flex flex-row justify-between select-none ' + (Maxed ? '' : 'cursor-pointer')}
-        onClick={onClick}>
+        onClick={onClick} onContextMenu={onRightClick}>
         <div className='flex flex-row flex-wrap'>{cost}</div>
         <div>{Maxed ? 'Maxed!' : `${level}/${lvls.length}`}</div>
       </div>

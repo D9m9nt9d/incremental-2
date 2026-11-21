@@ -1,5 +1,5 @@
 import { Decimal as D } from "decimal.js"
-import { addBase, addCurrency, Currencies, setCurrency, type CurrencyName } from "./currencies.ts"
+import { addBase, addCurrency, changeMulti, Currencies, setCurrency, type CurrencyName } from "./currencies.ts"
 import { useState, type ReactNode } from "react"
 import Currency from "../components/Currency.tsx"
 
@@ -89,13 +89,11 @@ const Upgrades: { [key: string]: UpgradeItem } = {
   },
   '#2': {
     Label: 'The repetition',
-    Levels: [
-      ...levels(5, {
-        Description: (i) => <>Plus&#8201;<Currency id="Money" text={String(i / 10000)} /> base.</>,
-        Cost: (i) => { return { 'Money': (i * i * 1.5 / 10000) } },
-        OnBought: (_) => (_, level) => addBase('Money', level / 10000)
-      })
-    ],
+    Levels: levels(5, {
+      Description: (i) => <>Plus&#8201;<Currency id="Money" text={String(i / 10000)} /> base.</>,
+      Cost: (i) => { return { 'Money': (i * i * 1.5 / 10000) } },
+      OnBought: (_) => (_, level) => addBase('Money', level / 10000)
+    }),
     LoadPriority: 1,
     Requirements: ['#1'], Unlocks: [],
   },
@@ -146,54 +144,113 @@ const Upgrades: { [key: string]: UpgradeItem } = {
       level({
         Description: <>Unlock money boosting machine</>,
         Cost: { 'Money': 0.6 },
-        OnBought: () => setGameState('HasBoostMachine', true)
+        OnBought: () => {
+          setGameState('HasMBM', true)
+          setInterval(() => {
+            setGameState('BMBpercents',
+              (prev: any) => Math.max(prev - getGameState('BMBminus'), 0))
+          }, 100)
+        }
       })
     ],
     LoadPriority: 1,
     Requirements: ['#4'], Unlocks: [],
   },
-} // 0.03
-
-const defaultValues: { [key: string]: any } = {
-  'HasBoostMachine': false
+  '#6': {
+    Label: '',
+    Levels: levels(3, {
+      Description: () => <>Lose money boost more slowly</>,
+      Cost: (i) => { return { 'Money': i * i } },
+      OnBought: () => () => setGameState('BMBminus', (prev: any) => prev - 0.25),
+    }),
+    LoadPriority: 1,
+    Requirements: ['#5'], Unlocks: [],
+  },
+  '#7': {
+    Label: '',
+    Levels: [
+      level({
+        Description: <>Auto click money boosting machine</>,
+        Cost: { 'Money': 100 },
+        OnBought: () => {
+          setInterval(() => {
+            setGameState('BMBpercents',
+              (prev: any) => Math.min(prev + 7, 100))
+          }, 1000)
+        }
+      })
+    ],
+    LoadPriority: 1,
+    Requirements: ['#5'], Unlocks: [],
+  },
+  '#8': {
+    Label: '',
+    Levels: [
+      level({
+        Description: <>Plus&#8201;<Currency id="Money" text="0.02" /> base</>,
+        Cost: { 'Money': 2.5 },
+        OnBought: () => addBase('Money', 0.02)
+      })
+    ],
+    LoadPriority: 1,
+    Requirements: ['#5'], Unlocks: [],
+  },
 }
+
 
 // Game states
 // Why not default useStates: i don't like how you have to use them inside elements, this will be easier to use
 
-const gameStates: { [key: string]: {
-  setState?: any
+type GameStateName = keyof typeof gameStates
+type GameStateItem = {
+  setState?: (prev: any) => void
   value: any
-} } = {}
+  func?: (param?: any) => any
+  onChanged?: (cur: any) => void
+}
 
-function useGameState(name: string) {
+function defineGameStates<K extends string>(states: Record<K, GameStateItem>) {
+  return states
+}
+
+const gameStates = defineGameStates({
+  HasMBM: { value: false },
+  BMBpercents: {
+    value: 0,
+    func() {
+      return 1 + this.value / 100 * 4
+    },
+    onChanged() {
+      changeMulti('Money', 'MoneyBoostingMachine', this.func?.())
+    }
+  },
+  BMBminus: { value: 1 },
+})
+
+function useGameState(name: GameStateName) {
   const [state, setState] = useState(getGameState(name))
   gameStates[name].setState = setState
-  return [state, setState]
+  return state
 }
 
-function setGameState(key: string, value: any) {
-  const state = gameStates[key] || {}
-  state.setState?.(value)
-  state.value = value
-  gameStates[key] = state
-}
+type Updater<T> = T | ((prev: T) => T)
 
-function getGameState(key: string) {
+function setGameState(key: GameStateName, value: Updater<any>) {
   const state = gameStates[key]
-  if (!state) {
-    const value = defaultValues[key]
-    gameStates[key] = {value: value}
-    return value
-  } else {
-    return state.value
-  }
+  const next = typeof value === 'function' ? value(state.value) : value
+  state.value = next
+  state.setState?.(() => next)
+  state.onChanged?.(next)
+}
+
+function getGameState(key: GameStateName) {
+  return gameStates[key].value
 }
 
 // Fill unlocks
 for (const upgId in Upgrades) {
   Upgrades[upgId].Requirements.forEach(id => Upgrades[id].Unlocks.push(upgId))
-} 
+}
 // console.log(Upgrades)
 
 const BoughtUpgrades: { [key: string]: number } = {
@@ -289,7 +346,8 @@ for (const [id, lvl] of sorted) {
 }
 
 export {
-  Upgrades, BoughtUpgrades, useGameState,
+  Upgrades, BoughtUpgrades, gameStates,
+  useGameState, getGameState, setGameState, 
   buyUpgrade, loadUpgrade, getLevel,
   type UpgradeItem, type UpgradeState
 }
