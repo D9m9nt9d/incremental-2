@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Currencies, formatCurrency, type CurrencyName } from '../scripts/currencies.ts';
+import { Currencies, formatCurrency, setCurrency, type CurrencyName } from '../scripts/currencies.ts';
 import Currency from './Currency.tsx';
+import Decimal from 'decimal.js';
 
 
 function CurrencyRow(
@@ -78,13 +79,53 @@ function Leftside() {
   }
 
   return (
-    <div className="min-w-[140px]">
+    <div className="w-[170px] h-full sticky top-0 ">
       {lists}
-      <button className="mt-[10px] cursor-pointer bg-gray-300"
-        onClick={() => localStorage.clear()}
-      >Clear local storage</button>
+      <TestingMode />
     </div>
   )
 }
 
 export default Leftside
+
+function TestingMode() {
+  const [currencyName, setCurrencyName] = useState<CurrencyName>('Money')
+  const [amount, setAmount] = useState<number|string>(0.6)
+
+  function onSet() {
+    setCurrency(currencyName, Decimal(amount))
+  }
+
+  return (
+    <div className="ml-1 mt-4 flex flex-col gap-2">
+      <p className='text-center font-medium leading-2'>Testing menu</p>
+      <select
+        className="border-2 border-gray-400 bg-gray-200 px-2 py-1"
+        value={currencyName}
+        onChange={e => setCurrencyName(e.target.value as CurrencyName)}
+      >
+        {Object.keys(Currencies).map(name => (
+          <option key={name} value={name}>{name}</option>
+        ))}
+      </select>
+      <input
+        className="border-2 border-gray-400 bg-gray-200 px-2 py-1"
+        type="number"
+        placeholder="Amount"
+        value={amount}
+        onChange={e => setAmount(e.target.value)}
+      />
+      <button
+        className="cursor-pointer bg-gray-300 px-2 py-1"
+        onClick={onSet}>
+        Set
+      </button>
+
+      <button
+        className="cursor-pointer bg-gray-300 px-2 py-1"
+        onClick={() => localStorage.clear()}>
+        Clear local storage
+      </button>
+    </div>
+  )
+}

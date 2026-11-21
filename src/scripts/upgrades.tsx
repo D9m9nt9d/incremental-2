@@ -1,9 +1,9 @@
 import { Decimal as D } from "decimal.js"
-import { addCurrency, Currencies, setCurrency, type CurrencyName } from "./currencies.ts"
-import type { ReactNode } from "react"
+import { addBase, addCurrency, Currencies, setCurrency, type CurrencyName } from "./currencies.ts"
+import { useState, type ReactNode } from "react"
 import Currency from "../components/Currency.tsx"
 
-type Cost = Partial<Record<CurrencyName, D.Instance>>
+type Cost = Partial<Record<CurrencyName, D.Value>>
 type Check = () => true | string
 type OnBought = (loaded: boolean, level: number) => void
 type UpgradeState = number | 'refresh'
@@ -13,7 +13,7 @@ interface UpgradeLevel {
   OnBought: OnBought
   Cost?: Cost
   Check?: Check
-  CostLabel?: string
+  CostLabel?: ReactNode
 }
 
 type UpgradeItem = {
@@ -29,8 +29,8 @@ function level({ Description, Cost, Check, CostLabel, OnBought }: {
   Description: ReactNode
   Cost?: Cost
   Check?: Check
-  CostLabel?: string
-  OnBought?: OnBought
+  CostLabel?: ReactNode
+  OnBought: OnBought
 }) {
   return {
     Description: Description,
@@ -42,10 +42,10 @@ function level({ Description, Cost, Check, CostLabel, OnBought }: {
 }
 
 function levels(amount: number, { Description, Cost, Check, CostLabel, OnBought }: {
-  Description: (level: number) => string
+  Description: (level: number) => ReactNode
   Cost?: (level: number) => Cost
   Check?: (level: number) => Check,
-  CostLabel?: (level: number) => string
+  CostLabel?: (level: number) => ReactNode
   OnBought: (level: number) => OnBought
 }) {
   const lvls = []
@@ -74,14 +74,14 @@ const Upgrades: { [key: string]: UpgradeItem } = {
         Description: <>Start generating&#8201;<Currency id='Money' text="0.0001" /> per second</>,
         CostLabel: 'Free!', Check: () => true,
         OnBought: () => {
-          Currencies.Money.Base = Currencies.Money.Base.plus(0.0001)
+          addBase('Money', 0.0001)
           setInterval(() => addCurrency('Money'), 1000);
         },
       }),
       level({
-        Description: <><span className="font-[cursive]">Plus&#8201;</span><Currency id='Money' text="1K" /><span className="font-[cursive]"> base</span></>,
-        Cost: { 'Money': D(1000), 'Gems': D(100), 'Crystals': D(10) },
-        OnBought: () => Currencies.Money.Base = Currencies.Money.Base.plus(1000),
+        Description: <>Plus&#8201;<Currency id='Money' text="1K" /> base</>,
+        Cost: { "Money": 1000, "Gems": 100, "Crystals": 10 },
+        OnBought: () => addBase('Money', 1000)
       })
     ],
     LoadPriority: 1,
@@ -90,28 +90,35 @@ const Upgrades: { [key: string]: UpgradeItem } = {
   '#2': {
     Label: 'The repetition',
     Levels: [
-      ...levels(10, {
-        Description: (i) => `Plus ${i / 10000} money base.`,
-        Cost: (i) => { return { 'Money': D(i * i / 10000) } },
-        OnBought: (i) => (load, level) => { console.log(level); Currencies.Money.Base = Currencies.Money.Base.plus(level / 10000) }
+      ...levels(5, {
+        Description: (i) => <>Plus&#8201;<Currency id="Money" text={String(i / 10000)} /> base.</>,
+        Cost: (i) => { return { 'Money': (i * i * 1.5 / 10000) } },
+        OnBought: (_) => (_, level) => addBase('Money', level / 10000)
       })
     ],
     LoadPriority: 1,
     Requirements: ['#1'], Unlocks: [],
   },
   '#3': {
-    Label: 'This needs to stop',
+    Label: 'Repetition of repetition',
     Levels: [
       ...levels(3, {
-        Description: (i) => `Plus 5 levels to #2.`,
-        Cost: (i) => { return { 'Money': D(i / 10000) } },
-        OnBought: (i) => (load, level) => {
+        Description: (_) => `Plus 5 levels to #2.`,
+        Cost: (i) => { return { 'Money': (i * i * i * i * i / 1000) } },
+        OnBought: (_) => (_) => {
+          const length = Upgrades['#2'].Levels.length
           Upgrades['#2'].Levels = [
             ...Upgrades['#2'].Levels,
             ...levels(5, {
-              Description: (i) => `Plus ${i / 10000} money base.`,
-              Cost: (i) => { return { 'Money': D(i * i / 10000) } },
-              OnBought: (i) => (load, level) => { console.log(level); Currencies.Money.Base = Currencies.Money.Base.plus(level / 10000) }
+              Description: (i) => {
+                i += length;
+                return <>Plus&#8201;<Currency id="Money" text={String(i / 10000)} /> base.</>
+              },
+              Cost: (i) => {
+                i += length;
+                return { 'Money': D(i * i * 2 / 10000) }
+              },
+              OnBought: (_) => (_, level) => addBase('Money', level / 10000)
             })
           ]
           Upgrades['#2'].setState?.('refresh')
@@ -119,15 +126,74 @@ const Upgrades: { [key: string]: UpgradeItem } = {
       })
     ],
     LoadPriority: 5,
-    Requirements: ['#1'], Unlocks: [],
+    Requirements: ['#2'], Unlocks: [],
   },
+  '#4': {
+    Label: '',
+    Levels: [
+      level({
+        Description: <>Plus&#8201;<Currency id="Money" text="0.0089" /> base</>,
+        Cost: { 'Money': 0.05 },
+        OnBought: () => addBase('Money', 0.0089)
+      })
+    ],
+    LoadPriority: 1,
+    Requirements: ['#2'], Unlocks: [],
+  },
+  '#5': {
+    Label: '',
+    Levels: [
+      level({
+        Description: <>Unlock money boosting machine</>,
+        Cost: { 'Money': 0.6 },
+        OnBought: () => setGameState('HasBoostMachine', true)
+      })
+    ],
+    LoadPriority: 1,
+    Requirements: ['#4'], Unlocks: [],
+  },
+} // 0.03
+
+const defaultValues: { [key: string]: any } = {
+  'HasBoostMachine': false
+}
+
+// Game states
+// Why not default useStates: i don't like how you have to use them inside elements, this will be easier to use
+
+const gameStates: { [key: string]: {
+  setState?: any
+  value: any
+} } = {}
+
+function useGameState(name: string) {
+  const [state, setState] = useState(getGameState(name))
+  gameStates[name].setState = setState
+  return [state, setState]
+}
+
+function setGameState(key: string, value: any) {
+  const state = gameStates[key] || {}
+  state.setState?.(value)
+  state.value = value
+  gameStates[key] = state
+}
+
+function getGameState(key: string) {
+  const state = gameStates[key]
+  if (!state) {
+    const value = defaultValues[key]
+    gameStates[key] = {value: value}
+    return value
+  } else {
+    return state.value
+  }
 }
 
 // Fill unlocks
 for (const upgId in Upgrades) {
   Upgrades[upgId].Requirements.forEach(id => Upgrades[id].Unlocks.push(upgId))
-}
-
+} 
 // console.log(Upgrades)
 
 const BoughtUpgrades: { [key: string]: number } = {
@@ -194,7 +260,7 @@ function loadUpgrade(id: string, level: number) {
 
   for (let i = 0; i <= level - 1; i++) {
     // console.log(i)
-    try { lvls[i].OnBought(true, i+1) }
+    try { lvls[i].OnBought(true, i + 1) }
     catch (e) {
       console.warn(`loadUpgrade - id: ${id}, lvl: ${level}, error: See below`)
       console.error(e)
@@ -223,7 +289,7 @@ for (const [id, lvl] of sorted) {
 }
 
 export {
-  Upgrades, BoughtUpgrades,
+  Upgrades, BoughtUpgrades, useGameState,
   buyUpgrade, loadUpgrade, getLevel,
   type UpgradeItem, type UpgradeState
 }

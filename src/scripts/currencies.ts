@@ -3,34 +3,40 @@ import Decimal from 'decimal.js';
 // Types
 
 interface CurrencyItem {
-  Value: Decimal.Instance;
-  Base: Decimal.Instance;
-  Multis: Decimal.Instance;
-  Category: string;
-  Icon: string,
+  Value: Decimal.Instance
+  Base: Decimal.Instance
+  Multis: Decimal.Instance
+  Per: Decimal.Instance
+  ActiveMultis: {
+    [key: string]: Decimal.Value
+  }
+  Category: string
+  Icon: string
   states: {
-    [key: string]: (param: any) => void;
-  };
-  className: string,
+    [key: string]: (param: any) => void
+  }
+  className: string
 };
 
 type CurrencyName = keyof typeof Currencies;
 
 const Currencies = {
-  'Money':    createCurrency('Basic',
+  'Money': createCurrency('Basic',
     'src/assets/money.svg',
     'text-green-700 font-[cursive]',
     Decimal(0)
   ),
-  'Gems':     createCurrency('Basic',     '', '', Decimal(23)),
+  'Gems': createCurrency('Basic', '', '', Decimal(23)),
   'Crystals': createCurrency('Secondary', '', '', Decimal(64)),
 } satisfies Record<string, CurrencyItem>;
 
 function createCurrency(category: string, icon: string, className: string, value: Decimal.Instance): CurrencyItem {
   return {
     Value: value,
+    Per: Decimal(0),
     Base: Decimal(0),
     Multis: Decimal(1),
+    ActiveMultis: {},
     Category: category,
     Icon: icon,
     className: className,
@@ -50,14 +56,35 @@ function setCurrency(name: CurrencyName, value: Decimal.Instance) {
 
 function addCurrency(name: CurrencyName) {
   const currency = Currencies[name];
-  const newValue = currency.Value.plus(currency.Base.times(currency.Multis))
-  setCurrency(name, newValue)
+  let amount = currency.Per
+  const activeMultis = currency.ActiveMultis;
+  for (const key in activeMultis) {
+    amount = amount.times(activeMultis[key]);
+  };
+  setCurrency(name, currency.Value.plus(amount));
+}
+
+function addBase(name: CurrencyName, amount: Decimal.Value) {
+  const currency = Currencies[name];
+  currency.Base = currency.Base.plus(amount)
+  currency.Per = currency.Base.times(currency.Multis)
+}
+
+function addMulti(name: CurrencyName, amount: Decimal.Value) {
+  const currency = Currencies[name];
+  currency.Multis = currency.Multis.times(amount)
+  currency.Per = currency.Base.times(currency.Multis)
+}
+
+function changeMulti(name: CurrencyName, key: string, amount: Decimal.Value) {
+  Currencies[name].ActiveMultis[key] = amount
 }
 
 const SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Vg'];
 
-function formatCurrency(value: Decimal.Instance, places = 2): string {
-  let abs = value.abs();
+function formatCurrency(value: Decimal.Value, places = 2): string {
+  const n = Decimal(value)
+  let abs = n.abs();
   let tier = 0;
 
   while (abs.gte(1000) && tier < SUFFIXES.length - 1) {
@@ -65,7 +92,7 @@ function formatCurrency(value: Decimal.Instance, places = 2): string {
     tier++;
   }
 
-  if (tier==0) return value.toDecimalPlaces(5).toString()
+  if (tier == 0) return n.toDecimalPlaces(5).toString()
 
   let rounded = abs.toDecimalPlaces(places, Decimal.ROUND_HALF_UP);
 
@@ -75,7 +102,7 @@ function formatCurrency(value: Decimal.Instance, places = 2): string {
     tier++;
   }
 
-  const sign = value.isNegative() && !rounded.isZero() ? '-' : '';
+  const sign = n.isNegative() && !rounded.isZero() ? '-' : '';
   return sign + rounded.toFixed(places) + SUFFIXES[tier];
 }
 
@@ -91,6 +118,7 @@ function formatCurrency(value: Decimal.Instance, places = 2): string {
 
 export {
   Currencies, setCurrency, addCurrency,
+  addBase, addMulti, changeMulti,
   formatCurrency,
   type CurrencyName
 }
