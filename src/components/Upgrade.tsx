@@ -1,12 +1,17 @@
 import { Fragment, useState } from 'react'
-import { BoughtUpgrades, buyUpgrade, Upgrades } from '../scripts/upgrades.tsx'
+import { type UpgradeState, buyUpgrade, getLevel, Upgrades } from '../scripts/upgrades.tsx'
 import Currency from './Currency.tsx'
 import { formatCurrency, type CurrencyName } from '../scripts/currencies'
 
 function Upgrade({ id, className }: {
   id: string, className?: string
 }) {
-  const [level, setLevel] = useState(BoughtUpgrades[id] || 0)
+  const [level, setLevel] = useState<UpgradeState>(getLevel(id))
+
+  if (level === 'refresh') {
+    setLevel(getLevel(id))
+    return
+  }
 
   const upgInfo = Upgrades[id]
   upgInfo.setState = setLevel

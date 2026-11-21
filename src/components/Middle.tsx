@@ -18,6 +18,7 @@ function Basic() {
       ">
       <Upgrade id={'#1'} />
       <Upgrade className="mt-[50px] mr-[100px]" id={'#2'} />
+      <Upgrade className="mt-[50px] mr-[100px]" id={'#3'} />
     </div>
   )
 }

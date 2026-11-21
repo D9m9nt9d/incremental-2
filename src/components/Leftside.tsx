@@ -78,8 +78,11 @@ function Leftside() {
   }
 
   return (
-    <div className="min-w-[120px]">
+    <div className="min-w-[140px]">
       {lists}
+      <button className="mt-[10px] cursor-pointer bg-gray-300"
+        onClick={() => localStorage.clear()}
+      >Clear local storage</button>
     </div>
   )
 }

@@ -6,6 +6,7 @@ import Currency from "../components/Currency.tsx"
 type Cost = Partial<Record<CurrencyName, D.Instance>>
 type Check = () => true | string
 type OnBought = (loaded: boolean, level: number) => void
+type UpgradeState = number | 'refresh'
 
 interface UpgradeLevel {
   Description: ReactNode
@@ -20,7 +21,8 @@ type UpgradeItem = {
   Levels: UpgradeLevel[]
   Requirements: string[]
   Unlocks: string[]
-  setState?: (level: number) => void
+  LoadPriority: number
+  setState?: (level: UpgradeState) => void
 }
 
 function level({ Description, Cost, Check, CostLabel, OnBought }: {
@@ -62,13 +64,14 @@ function levels(amount: number, { Description, Cost, Check, CostLabel, OnBought 
 }
 
 // Different fonts have different letter heights so basic font -> currency with cursive (for example) -> basic font looks ugly 
+// First levels index is 0 but it sends parameter 1
 
 const Upgrades: { [key: string]: UpgradeItem } = {
   '#1': {
     Label: 'The grand start',
     Levels: [
       level({
-        Description: <>Start generating&#8201;<Currency id='Money' text="0.0001"/> per second</>,
+        Description: <>Start generating&#8201;<Currency id='Money' text="0.0001" /> per second</>,
         CostLabel: 'Free!', Check: () => true,
         OnBought: () => {
           Currencies.Money.Base = Currencies.Money.Base.plus(0.0001)
@@ -78,22 +81,46 @@ const Upgrades: { [key: string]: UpgradeItem } = {
       level({
         Description: <><span className="font-[cursive]">Plus&#8201;</span><Currency id='Money' text="1K" /><span className="font-[cursive]"> base</span></>,
         Cost: { 'Money': D(1000), 'Gems': D(100), 'Crystals': D(10) },
-        OnBought: () =>  Currencies.Money.Base = Currencies.Money.Base.plus(1000),
+        OnBought: () => Currencies.Money.Base = Currencies.Money.Base.plus(1000),
       })
     ],
+    LoadPriority: 1,
     Requirements: [], Unlocks: [],
   },
   '#2': {
     Label: 'The repetition',
     Levels: [
-      ...levels(25, {
-        Description: (i) => `Plus ${i/10000} money base.`,
-        Cost: (i) => { return { 'Money': D(i*i/10000) } },
-        OnBought: (i) => (load, level) => Currencies.Money.Base = Currencies.Money.Base.plus(level/10000)
+      ...levels(10, {
+        Description: (i) => `Plus ${i / 10000} money base.`,
+        Cost: (i) => { return { 'Money': D(i * i / 10000) } },
+        OnBought: (i) => (load, level) => { console.log(level); Currencies.Money.Base = Currencies.Money.Base.plus(level / 10000) }
       })
     ],
+    LoadPriority: 1,
     Requirements: ['#1'], Unlocks: [],
-  }
+  },
+  '#3': {
+    Label: 'This needs to stop',
+    Levels: [
+      ...levels(3, {
+        Description: (i) => `Plus 5 levels to #2.`,
+        Cost: (i) => { return { 'Money': D(i / 10000) } },
+        OnBought: (i) => (load, level) => {
+          Upgrades['#2'].Levels = [
+            ...Upgrades['#2'].Levels,
+            ...levels(5, {
+              Description: (i) => `Plus ${i / 10000} money base.`,
+              Cost: (i) => { return { 'Money': D(i * i / 10000) } },
+              OnBought: (i) => (load, level) => { console.log(level); Currencies.Money.Base = Currencies.Money.Base.plus(level / 10000) }
+            })
+          ]
+          Upgrades['#2'].setState?.('refresh')
+        }
+      })
+    ],
+    LoadPriority: 5,
+    Requirements: ['#1'], Unlocks: [],
+  },
 }
 
 // Fill unlocks
@@ -101,15 +128,23 @@ for (const upgId in Upgrades) {
   Upgrades[upgId].Requirements.forEach(id => Upgrades[id].Unlocks.push(upgId))
 }
 
-console.log(Upgrades)
+// console.log(Upgrades)
 
 const BoughtUpgrades: { [key: string]: number } = {
-  // '#1': 2
+  // '#1': 2,
+  // '#2': 13,
+  // '#3': 1,
+}
+
+// Functions
+
+function getLevel(id: string) {
+  return BoughtUpgrades[id] || 0
 }
 
 function buyUpgrade(id: string) {
   const upgInfo = Upgrades[id]
-  let level = BoughtUpgrades[id] || 0
+  let level = getLevel(id)
 
   const lvls = upgInfo.Levels
   const lvlInfo = lvls[level]
@@ -138,6 +173,7 @@ function buyUpgrade(id: string) {
 
   level += 1
   BoughtUpgrades[id] = level
+  localStorage.setItem('boughtUpgrades', JSON.stringify(BoughtUpgrades))
   upgInfo.setState?.(level)
   try { lvlInfo.OnBought(false, level) }
   catch (e) {
@@ -158,7 +194,7 @@ function loadUpgrade(id: string, level: number) {
 
   for (let i = 0; i <= level - 1; i++) {
     // console.log(i)
-    try { lvls[i].OnBought(true, i) }
+    try { lvls[i].OnBought(true, i+1) }
     catch (e) {
       console.warn(`loadUpgrade - id: ${id}, lvl: ${level}, error: See below`)
       console.error(e)
@@ -168,13 +204,26 @@ function loadUpgrade(id: string, level: number) {
   upgInfo.setState?.(level)
 }
 
-for (const id in BoughtUpgrades) {
-  const lvl = BoughtUpgrades[id]
+// Init
+
+const savedUnparsed = localStorage.getItem('boughtUpgrades')
+if (savedUnparsed) {
+  const saved = JSON.parse(savedUnparsed)
+  for (const id in saved) {
+    BoughtUpgrades[id] = saved[id]
+  }
+}
+
+const sorted = Object.entries(BoughtUpgrades).sort(
+  ([a], [b]) => Upgrades[b].LoadPriority - Upgrades[a].LoadPriority
+)
+
+for (const [id, lvl] of sorted) {
   loadUpgrade(id, lvl)
 }
 
 export {
   Upgrades, BoughtUpgrades,
-  buyUpgrade, loadUpgrade,
-  type UpgradeItem
+  buyUpgrade, loadUpgrade, getLevel,
+  type UpgradeItem, type UpgradeState
 }
