@@ -12,5 +12,7 @@ On the left side you should see your currencies, like <img height="20px" src="sr
 In the middle you should see upgrades, the main part of the game<br/>
 <img height="240px" src="src/assets/showcase/gs-middle.png" alt="Image of the middle of the website"/><br/>
 you buy those upgrades to boost your currencies gain, like every incremental game.
+To buy an upgrade click the lowest rectangle where the cost is displayed. Right click to buy maximum amount of levels you can afford.<br/>
+<img height="200px" src="src/assets/showcase/gs-upg.webp" alt="Image of an upgrade"/><br/>
 
 That's pretty much everything you need to know to playtest the game. It doesn't have much content because im using Vite, React with TypeScript and TailWind for the first time.
