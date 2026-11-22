@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, type ReactNode } from "react"
 import Upgrade from "./Upgrade.tsx"
-import { gameStates, setGameState, Upgrades, useGameState } from "../scripts/upgrades.tsx"
+import { setGameState, Upgrades, useGameState } from "../scripts/upgrades.tsx"
 
 function Row({ children, className }: {
   children?: ReactNode, className?: string
@@ -31,7 +31,7 @@ function Bar({ percent }: { percent: number }) {
 
 function MoneyBoostingMachine() {
   const percentage = useGameState('BMBpercents')
-  const multiplier = gameStates.BMBpercents.func?.(percentage)
+  const multiplier = useGameState('BMBmulti')
 
   function onClick() {
     setGameState('BMBpercents', (prev: any) => Math.min(prev + 7, 100))
@@ -68,20 +68,26 @@ function Basic() {
       w-[1000px] my-6 z-2
       font-[montserrat]
       ">
-      <Upgrade id={'#1'} />
-      <Upgrade className="mt-12 mr-24" id={'#2'} />
+      <Upgrade id='#1' />
+      <Upgrade className="mt-12 mr-24" id='#2' />
       <Row className="mt-12">
-        <Upgrade className="mr-3" id={'#3'} />
-        <Upgrade className="ml-12" id={'#4'} />
+        <Upgrade className="mr-3" id='#3' />
+        <Upgrade className="ml-12" id='#4' />
       </Row>
       <Row className="mt-12">
-        <Upgrade className="mt-2 mr-12" id={'#5'} />
+        <Upgrade className="mt-2 mr-12" id='#5' />
         {hasBoostMachine && <MoneyBoostingMachine />}
       </Row>
       <Row className="mt-15">
-        <Upgrade className="" id={'#6'} />
-        <Upgrade className="mx-5" id={'#7'} />
-        <Upgrade className="" id={'#8'} />
+        <Upgrade className="" id='#6' />
+        <Upgrade className="mx-5" id='#7' />
+        <Upgrade className="" id='#8' />
+      </Row>
+      <Upgrade className="mt-12 ml-80" id='#9' />
+      <Upgrade className="mt-12 mr-8" id='#10' />
+      <Row className="mt-12">
+        <Upgrade className="mx-5" id='#11' />
+        <Upgrade className="mx-5" id='#12' />
       </Row>
     </div>
   )

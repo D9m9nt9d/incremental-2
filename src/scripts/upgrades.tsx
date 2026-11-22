@@ -1,5 +1,5 @@
 import { Decimal as D } from "decimal.js"
-import { addBase, addCurrency, changeMulti, Currencies, setCurrency, type CurrencyName } from "./currencies.ts"
+import { addBase, addCurrency, addMulti, changeMulti, Currencies, setCurrency, type CurrencyName } from "./currencies.ts"
 import { useState, type ReactNode } from "react"
 import Currency from "../components/Currency.tsx"
 
@@ -195,6 +195,59 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     LoadPriority: 1,
     Requirements: ['#5'], Unlocks: [],
   },
+  '#9': {
+    Label: '',
+    Levels: [
+      level({
+        Description: <>Plus&#8201;<Currency id="Money" text="0.02" /> base</>,
+        Cost: { 'Money': 3 },
+        OnBought: () => addBase('Money', 0.02)
+      })
+    ],
+    LoadPriority: 1,
+    Requirements: ['#8'], Unlocks: [],
+  },
+  '#10': {
+    Label: '',
+    Levels: [
+      level({
+        Description: <>Plus&#8201;<Currency id="Money" text="0.03" /> base</>,
+        Cost: { 'Money': 4 },
+        OnBought: () => addBase('Money', 0.03)
+      })
+    ],
+    LoadPriority: 1,
+    Requirements: ['#9'], Unlocks: [],
+  },
+  '#11': {
+    Label: '',
+    Levels: [
+      level({
+        Description: <>Start generating <Currency id="Gems" text="10,"/> <Currency id="Crystals" text="1"/> per second</>,
+        Cost: { 'Money': 5 },
+        OnBought: () => {
+          addBase('Gems', 10)
+          setInterval(() => addCurrency('Gems'), 1000);
+          addBase('Crystals', 1)
+          setInterval(() => addCurrency('Crystals'), 1000);
+        }
+      })
+    ],
+    LoadPriority: 1,
+    Requirements: ['#10'], Unlocks: [],
+  },
+  '#12': {
+    Label: '',
+    Levels: [
+      level({
+        Description: <Currency id="Money" text="50x money"/>,
+        Cost: { 'Money': 5 },
+        OnBought: () => addMulti('Money', 50)
+      })
+    ],
+    LoadPriority: 1,
+    Requirements: ['#10'], Unlocks: [],
+  },
 }
 
 
@@ -203,10 +256,9 @@ const Upgrades: { [key: string]: UpgradeItem } = {
 
 type GameStateName = keyof typeof gameStates
 type GameStateItem = {
-  setState?: (prev: any) => void
   value: any
-  func?: (param?: any) => any
   onChanged?: (cur: any) => void
+  setState?: (prev: any) => void
 }
 
 function defineGameStates<K extends string>(states: Record<K, GameStateItem>) {
@@ -215,14 +267,11 @@ function defineGameStates<K extends string>(states: Record<K, GameStateItem>) {
 
 const gameStates = defineGameStates({
   HasMBM: { value: false },
-  BMBpercents: {
-    value: 0,
-    func() {
-      return 1 + this.value / 100 * 4
-    },
-    onChanged() {
-      changeMulti('Money', 'MoneyBoostingMachine', this.func?.())
-    }
+  BMBpercents: { value: 0,
+    onChanged(value) {setGameState('BMBmulti', 1 + value / 100 * 4)}
+  },
+  BMBmulti: { value: 1,
+    onChanged(value) {changeMulti('Money', 'MoneyBoostingMachine', value)}
   },
   BMBminus: { value: 1 },
 })
@@ -239,7 +288,7 @@ function setGameState(key: GameStateName, value: Updater<any>) {
   const state = gameStates[key]
   const next = typeof value === 'function' ? value(state.value) : value
   state.value = next
-  state.setState?.(() => next)
+  state.setState?.(next)
   state.onChanged?.(next)
 }
 
@@ -249,7 +298,14 @@ function getGameState(key: GameStateName) {
 
 // Fill unlocks
 for (const upgId in Upgrades) {
-  Upgrades[upgId].Requirements.forEach(id => Upgrades[id].Unlocks.push(upgId))
+  Upgrades[upgId].Requirements.forEach(id => {
+    const otherUpg = Upgrades[id]
+    if (!otherUpg) {
+      console.warn(`Upgrade: ${upgId} has invalid req: ${id}`)
+      return
+    }
+    otherUpg.Unlocks.push(upgId)
+  })
 }
 // console.log(Upgrades)
 
