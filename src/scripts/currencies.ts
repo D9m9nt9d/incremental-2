@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import moneyIcon from '/src/assets/money.svg'
 
 // Types
 
@@ -22,7 +23,7 @@ type CurrencyName = keyof typeof Currencies;
 
 const Currencies = {
   'Money': createCurrency('Basic',
-    'src/assets/money.svg',
+    moneyIcon,
     'text-green-700 font-[cursive]',
     Decimal(0)
   ),
