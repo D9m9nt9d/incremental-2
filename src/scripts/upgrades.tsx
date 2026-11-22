@@ -127,7 +127,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#2'], Unlocks: [],
   },
   '#4': {
-    Label: '',
+    Label: 'More money',
     Levels: [
       level({
         Description: <>Plus&#8201;<Currency id="Money" text="0.0089" /> base</>,
@@ -139,7 +139,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#2'], Unlocks: [],
   },
   '#5': {
-    Label: '',
+    Label: 'Money boosting',
     Levels: [
       level({
         Description: <>Unlock money boosting machine</>,
@@ -157,7 +157,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#4'], Unlocks: [],
   },
   '#6': {
-    Label: '',
+    Label: 'Slowdown',
     Levels: levels(3, {
       Description: () => <>Lose money boost more slowly</>,
       Cost: (i) => { return { 'Money': i * i } },
@@ -167,7 +167,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#5'], Unlocks: [],
   },
   '#7': {
-    Label: '',
+    Label: 'Autoclicker',
     Levels: [
       level({
         Description: <>Auto click money boosting machine</>,
@@ -184,7 +184,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#5'], Unlocks: [],
   },
   '#8': {
-    Label: '',
+    Label: 'Filler upgrade',
     Levels: [
       level({
         Description: <>Plus&#8201;<Currency id="Money" text="0.02" /> base</>,
@@ -196,7 +196,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#5'], Unlocks: [],
   },
   '#9': {
-    Label: '',
+    Label: 'Another one',
     Levels: [
       level({
         Description: <>Plus&#8201;<Currency id="Money" text="0.02" /> base</>,
@@ -208,7 +208,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#8'], Unlocks: [],
   },
   '#10': {
-    Label: '',
+    Label: 'One more filler upgrade',
     Levels: [
       level({
         Description: <>Plus&#8201;<Currency id="Money" text="0.03" /> base</>,
@@ -220,7 +220,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#9'], Unlocks: [],
   },
   '#11': {
-    Label: '',
+    Label: 'This will change',
     Levels: [
       level({
         Description: <>Start generating <Currency id="Gems" text="10,"/> <Currency id="Crystals" text="1"/> per second</>,
@@ -237,7 +237,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#10'], Unlocks: [],
   },
   '#12': {
-    Label: '',
+    Label: 'After more content added',
     Levels: [
       level({
         Description: <Currency id="Money" text="50x money"/>,
