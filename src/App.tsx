@@ -1,11 +1,13 @@
 import Leftside from './components/Leftside.tsx'
 import Middle from './components/Middle.tsx'
+import RightSide from './components/Rightside.tsx'
 
 function App() {
   return (
-    <div className="flex flex-row">
+    <div>
       <Leftside />
       <Middle />
+      <RightSide />
     </div>
   )
 }

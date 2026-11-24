@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, type ReactNode } from "react"
 import Upgrade from "./Upgrade.tsx"
-import { setGameState, Upgrades, useGameState } from "../scripts/upgrades.tsx"
+import { Upgrades } from "../scripts/upgrades.tsx"
+import { setGameState, useGameState } from "../scripts/gameStates.ts"
 
 function Row({ children, className }: {
   children?: ReactNode, className?: string
@@ -38,7 +39,7 @@ function MoneyBoostingMachine() {
   }
 
   return (
-    <div className="w-72 flex flex-col gap-3 p-4 border-3
+    <div id="MoneyBooster" className="w-72 flex flex-col gap-3 p-4 border-3
     border-gray-300 bg-gray-200 font-medium">
       <div className="flex items-end justify-between">
         <span>Money boost:</span>
@@ -65,7 +66,7 @@ function Basic() {
   return (
     <div className="
       flex flex-col flex-wrap items-center
-      w-[1000px] my-6 z-2
+      w-500 px-55 my-6 z-2
       font-[montserrat]
       ">
       <Upgrade id='#1' />

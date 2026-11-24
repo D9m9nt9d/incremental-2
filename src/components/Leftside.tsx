@@ -79,7 +79,7 @@ function Leftside() {
   }
 
   return (
-    <div className="w-[170px] h-full sticky top-0 ">
+    <div className="w-50 fixed left-0 top-0 z-5">
       {lists}
       <TestingMode />
     </div>

@@ -13,4 +13,4 @@ you buy those upgrades to boost your currencies gain, like every incremental gam
 > <img height="200px" src="src/assets/showcase/gs-upg.webp" alt="Image of an upgrade"/>
 
 > [!TIP]
-> Right click to buy maximum amount of levels you can afford.<br/>
+> Right click (long click on mobile) to buy maximum amount of levels you can afford.<br/>
