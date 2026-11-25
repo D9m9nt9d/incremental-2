@@ -3,6 +3,11 @@ import Upgrade from "./Upgrade.tsx"
 import Row from "./Row.tsx"
 import Bar from "./Bar.tsx"
 
+import crystalsIcon from '/src/assets/images/crystal.svg'
+import { random, randomFloat, removeFromArray } from "../scripts/utils.ts"
+import { addCurrency } from "../scripts/currencies.ts"
+import Decimal from "decimal.js"
+
 function MoneyBoostingMachine() {
   const percentage = useGameState('BMBpercents')
   const multiplier = useGameState('BMBmulti')
@@ -33,8 +38,63 @@ function MoneyBoostingMachine() {
   )
 }
 
+function CrystalMine() {
+  const crystals: crystal[] = useGameState('Crystals')
+
+  type crystal = {
+    x: number,
+    y: number,
+    rotate: number,
+    bright: number,
+    hue: number,
+    size: number
+  }
+
+  function createRandomCrystal() {
+    return {
+      x: random(4, 96),
+      y: random(5, 95),
+      rotate: random(0, 359),
+      bright: random(95, 105),
+      hue: random(-10, 10),
+      size: randomFloat(.9, 1.1)
+    }
+  }
+
+  if (crystals.length === 0) {
+    const toSet: crystal[] = []
+    for (let i = 1; i <= 100; i++) {
+      toSet.push(createRandomCrystal())
+    }
+    setGameState('Crystals', toSet)
+  }
+
+  function onHover(index: number) {
+    addCurrency('Crystals', Decimal(1))
+    setGameState('Crystals', (prev: any) => removeFromArray(prev, index))
+  }
+
+  return (
+    <div id="CrystalMine" className="w-140 h-100 bg-zinc-500 my-15 relative">
+      {crystals.map((info, index) => {
+        return (
+          <img key={index} src={crystalsIcon} className="w-10 h-10 absolute p-1"
+            style={{
+              left: `${info.x}%`, top: `${info.y}%`,
+              transform: `translate(-50%, -50%) rotate(${info.rotate}deg) scale(${info.size})`,
+              filter: `brightness(${info.bright}%) hue-rotate(${info.hue}deg)`
+            }}
+            onMouseOver={() => onHover(index)}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 function Basic() {
   const hasBoostMachine = useGameState('HasMBM')
+  const hasCrystalMine = useGameState('HasCM')
 
   return (
     <div className="
@@ -60,6 +120,7 @@ function Basic() {
       <Upgrade className="mt-12 ml-80" id='#9' />
       <Upgrade className="mt-12 ml-30" id='#10' />
       <Upgrade className="mt-15" id="#11" />
+      {hasCrystalMine && <CrystalMine />}
     </div>
   )
 }

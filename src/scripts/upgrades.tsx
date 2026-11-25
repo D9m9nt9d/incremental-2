@@ -220,14 +220,14 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#9'], Unlocks: [],
   },
   '#11': {
-    Label: 'W.I.P.',
+    Label: 'Crystals!',
     Levels: [
       level({
-        Description: <>Unlock the </>,
+        Description: <>Unlock the crystal mine</>,
         Cost: { 'Money': 10 },
         OnBought: () => {
-          // pinIfNotPinned('')
-          // setGameState('', true)
+          pinIfNotPinned('CrystalMine')
+          setGameState('HasCM', true)
         }
       })
     ],

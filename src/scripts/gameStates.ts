@@ -33,7 +33,8 @@ const gameStates = defineGameStates({
   },
   BMBminus: { value: 1 },
 
-  HasRC: { value: false },
+  HasCM: { value: false },
+  Crystals: { value: [] },
 })
 
 function useGameState(name: GameStateName) {

@@ -9,7 +9,7 @@ type ScrollableItem = {
 
 type Pinned = Partial<Record<ScrollableName, boolean>>
 
-const defaultStyle = 'font-[montserrat] font-medium text-amber-700 px-2 py-1'
+const defaultStyle = 'font-[montserrat] font-medium text-amber-700'
 
 const scrollables = {
   MoneyBooster: {
@@ -17,9 +17,9 @@ const scrollables = {
     display: 'Money boosting machine',
     index: 0
   },
-  ResearchCenter: {
-    className: defaultStyle,
-    display: 'Research center',
+  CrystalMine: {
+    className: 'font-[Jost] text-indigo-600',
+    display: 'Crystal mine',
     index: 1
   },
 } satisfies Record<string, ScrollableItem>;
