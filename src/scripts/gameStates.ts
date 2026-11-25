@@ -20,6 +20,8 @@ function defineGameStates<K extends string>(states: Record<K, GameStateItem>) {
 }
 
 const gameStates = defineGameStates({
+  Pinned: { value: {} },
+
   HasMBM: { value: false },
   BMBpercents: {
     value: 0,
@@ -30,7 +32,8 @@ const gameStates = defineGameStates({
     onChanged(value) { changeMulti('Money', 'MoneyBoostingMachine', value) }
   },
   BMBminus: { value: 1 },
-  Pinned: { value: {} }
+
+  HasRC: { value: false },
 })
 
 function useGameState(name: GameStateName) {

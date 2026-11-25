@@ -92,7 +92,7 @@ export default Leftside
 
 function TestingMode() {
   const [currencyName, setCurrencyName] = useState<CurrencyName>('Money')
-  const [amount, setAmount] = useState<number|string>(0.6)
+  const [amount, setAmount] = useState<number | string>(0.6)
 
   return (
     <div className="ml-1 mt-4 flex flex-col gap-2">
@@ -120,14 +120,22 @@ function TestingMode() {
       </button>
       <button
         className="cursor-pointer bg-gray-300 px-2 py-1"
-        onClick={() => 
-          setCurrency(currencyName, Currencies[currencyName].Value.plus(amount))}>
+        onClick={() =>
+          setCurrency(currencyName, Currencies[currencyName].Value.plus(Decimal(amount)))}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setCurrency(currencyName, Currencies[currencyName].Value.plus(Decimal(amount).times(10)));
+        }}>
         Add
       </button>
       <button
         className="cursor-pointer bg-gray-300 px-2 py-1"
-        onClick={() => 
-          setCurrency(currencyName, Currencies[currencyName].Value.minus(amount))}>
+        onClick={() =>
+          setCurrency(currencyName, Currencies[currencyName].Value.minus(Decimal(amount)))}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setCurrency(currencyName, Currencies[currencyName].Value.minus(Decimal(amount).times(10)));
+        }}>
         Remove
       </button>
 

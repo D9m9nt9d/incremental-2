@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useGameState } from "../scripts/gameStates";
-import { scrollables, setPin, type Pinned, type ScrollableName } from "../scripts/scrollables";
+import { scrollables, setPin, type Pinned, type ScrollableItem, type ScrollableName } from "../scripts/scrollables";
+
+import pinIcon from '/src/assets/images/pin.svg'
 
 function Scrollables({ pinned, editing }: {
   pinned: Pinned
@@ -15,12 +17,12 @@ function Scrollables({ pinned, editing }: {
       const value = pinned[key]
 
       toDisplay.push(
-        <div key={key} style={{ order: info.index }}>
-          <button className="bg-black text-white px-4 py-2"
-            onClick={() => setPin(key, !value)}
-          >Pin{value ? '+' : '-'}
-          </button>
-          <span>{info.display}</span>
+        <div key={key} style={{ order: info.index }}
+          className="flex flex-row select-none"
+          onClick={() => setPin(key, !value)}
+        >
+          <img draggable='false' src={pinIcon} className={(!value ? 'grayscale ' : '') + ' aspect-square object-scale-down'} />
+          <span className={info.className}>{info.display}</span>
         </div>
       )
     }
@@ -28,7 +30,7 @@ function Scrollables({ pinned, editing }: {
     for (const name in pinned) {
       const key = name as ScrollableName
       if (pinned[key] != true) continue
-      const info = scrollables[name as ScrollableName]
+      const info = scrollables[key]
 
       function onClick() {
         document.getElementById(name)?.scrollIntoView({
@@ -40,7 +42,7 @@ function Scrollables({ pinned, editing }: {
 
       toDisplay.push(
         <div key={key} style={{ order: info.index }}>
-          <button className="bg-black text-white px-4 py-2"
+          <button className={info.className}
             onClick={onClick}
           >{info.display}
           </button>

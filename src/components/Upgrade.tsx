@@ -3,9 +3,14 @@ import { type UpgradeState, buyUpgrade, getLevel, Upgrades } from '../scripts/up
 import Currency from './Currency.tsx'
 import { formatCurrency, type CurrencyName } from '../scripts/currencies'
 
-function Upgrade({ id, className }: {
-  id: string, className?: string
+function Upgrade({ id, className, style }: {
+  id: string, className?: string, style?: ''
 }) {
+  if (!Upgrades[id]) {
+    console.warn('Invalid upgrade id - ' + id)
+    return
+  }
+
   const [level, setLevel] = useState<UpgradeState>(getLevel(id))
 
   if (level === 'refresh') {
@@ -59,28 +64,34 @@ function Upgrade({ id, className }: {
     }
   }
 
-  return (
-    <div id={id} className={'w-[260px] h-fit rounded-md bg-gray-200 border-3 border-gray-300 ' + (className ? className : '')}>
-      <div className='py-1 px-2 flex flex-row justify-between'>
-        <div className=''>{id}</div>
-        <div className='p'>{upgInfo.Label}</div>
-      </div>
-      <div className='text-center h-[78px] bg-gray-300/50
+  if (!style) {
+    return (
+      <div id={id} className={'w-[260px] h-fit rounded-md bg-gray-200 border-3 border-gray-300 ' + (className ? className : '')}>
+        <div className='py-1 px-2 flex flex-row justify-between'>
+          <div className=''>{id}</div>
+          <div className='p'>{upgInfo.Label}</div>
+        </div>
+        <div className='text-center h-[78px] bg-gray-300/50
         overflow-y-auto scrollbar-thin scrollbar-gutter-both scrollbar-track-transparent
         transition-all transition-discrete duration-200 ease-in-out
         scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300
         flex content-center-safe justify-center-safe
         flex-row flex-wrap whitespace-pre-wrap
         '>
-        {lvlInfo.Description}
+          {lvlInfo.Description || upgInfo.FallbackDescription}
+        </div>
+        <div className={'py-1 px-2 flex flex-row justify-between select-none ' + (Maxed ? '' : 'cursor-pointer')}
+          onClick={onClick} onContextMenu={onRightClick}>
+          <div className='flex flex-row flex-wrap'>{cost}</div>
+          <div>{Maxed ? 'Maxed!' : `${level}/${lvls.length}`}</div>
+        </div>
       </div>
-      <div className={'py-1 px-2 flex flex-row justify-between select-none ' + (Maxed ? '' : 'cursor-pointer')}
-        onClick={onClick} onContextMenu={onRightClick}>
-        <div className='flex flex-row flex-wrap'>{cost}</div>
-        <div>{Maxed ? 'Maxed!' : `${level}/${lvls.length}`}</div>
-      </div>
-    </div>
-  )
+    )
+  } else if (style === '') {
+    
+  } else {
+    console.warn('Invalid upgrade style - ' + style)
+  }
 }
 
 export default Upgrade

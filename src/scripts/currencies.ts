@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
-import moneyIcon from '/src/assets/money.svg'
+import moneyIcon from '/src/assets/images/money.svg'
+import crystalsIcon from '/src/assets/images/crystal.svg'
 
 // Types
 
@@ -22,13 +23,12 @@ interface CurrencyItem {
 type CurrencyName = keyof typeof Currencies;
 
 const Currencies = {
-  'Money': createCurrency('Basic',
-    moneyIcon,
-    'text-green-700 font-[cursive]',
-    Decimal(0)
+  'Money': createCurrency('Basic', moneyIcon,
+    'text-green-600 font-medium font-[Comic+Neue]', Decimal(0)
   ),
-  'Gems': createCurrency('Basic', '', '', Decimal(23)),
-  'Crystals': createCurrency('Secondary', '', '', Decimal(64)),
+  'Crystals': createCurrency('Basic', crystalsIcon,
+    'text-purple-600 font-medium font-[Jost]', Decimal(0)
+  ),
 } satisfies Record<string, CurrencyItem>;
 
 function createCurrency(category: string, icon: string, className: string, value: Decimal.Instance): CurrencyItem {
@@ -55,9 +55,9 @@ function setCurrency(name: CurrencyName, value: Decimal.Instance) {
   });
 };
 
-function addCurrency(name: CurrencyName) {
+function addCurrency(name: CurrencyName, amount?: Decimal.Instance) {
   const currency = Currencies[name];
-  let amount = currency.Per
+  amount = amount || currency.Per
   const activeMultis = currency.ActiveMultis;
   for (const key in activeMultis) {
     amount = amount.times(activeMultis[key]);

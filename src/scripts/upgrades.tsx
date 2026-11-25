@@ -11,7 +11,7 @@ type OnBought = (loaded: boolean, level: number) => void
 type UpgradeState = number | 'refresh'
 
 interface UpgradeLevel {
-  Description: ReactNode
+  Description?: ReactNode
   OnBought: OnBought
   Cost?: Cost
   Check?: Check
@@ -25,10 +25,11 @@ type UpgradeItem = {
   Unlocks: string[]
   LoadPriority: number
   setState?: (level: UpgradeState) => void
+  FallbackDescription?: ReactNode
 }
 
 function level({ Description, Cost, Check, CostLabel, OnBought }: {
-  Description: ReactNode
+  Description?: ReactNode
   Cost?: Cost
   Check?: Check
   CostLabel?: ReactNode
@@ -44,7 +45,7 @@ function level({ Description, Cost, Check, CostLabel, OnBought }: {
 }
 
 function levels(amount: number, { Description, Cost, Check, CostLabel, OnBought }: {
-  Description: (level: number) => ReactNode
+  Description?: (level: number) => ReactNode
   Cost?: (level: number) => Cost
   Check?: (level: number) => Check,
   CostLabel?: (level: number) => ReactNode
@@ -54,7 +55,7 @@ function levels(amount: number, { Description, Cost, Check, CostLabel, OnBought 
 
   for (let i = 1; i <= amount; i++) {
     lvls.push({
-      Description: Description(i),
+      Description: Description?.(i),
       OnBought: OnBought(i),
       Cost: Cost?.(i),
       Check: Check?.(i),
@@ -80,11 +81,6 @@ const Upgrades: { [key: string]: UpgradeItem } = {
           setInterval(() => addCurrency('Money'), 1000);
         },
       }),
-      level({
-        Description: <>Plus&#8201;<Currency id='Money' text="1K" /> base</>,
-        Cost: { "Money": 1000, "Gems": 100, "Crystals": 10 },
-        OnBought: () => addBase('Money', 1000)
-      })
     ],
     LoadPriority: 1,
     Requirements: [], Unlocks: [],
@@ -160,11 +156,12 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#4'], Unlocks: [],
   },
   '#6': {
+    FallbackDescription: <>Lose money boost more slowly</>,
     Label: 'Slowdown',
-    Levels: levels(3, {
-      Description: () => <>Lose money boost more slowly</>,
+    Levels: levels(4, {
       Cost: (i) => { return { 'Money': i * i } },
-      OnBought: () => () => setGameState('BMBminus', (prev: any) => prev - 0.25),
+      OnBought: () => (_, level) =>
+        setGameState('BMBminus', (prev: any) => prev - (level === 4 ? 0.25 : 0.23)),
     }),
     LoadPriority: 1,
     Requirements: ['#5'], Unlocks: [],
@@ -174,7 +171,7 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Levels: [
       level({
         Description: <>Auto click money boosting machine</>,
-        Cost: { 'Money': 100 },
+        Cost: { 'Money': 499 },
         OnBought: () => {
           setInterval(() => {
             setGameState('BMBpercents',
@@ -223,29 +220,15 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Requirements: ['#9'], Unlocks: [],
   },
   '#11': {
-    Label: 'These will change after',
+    Label: 'W.I.P.',
     Levels: [
       level({
-        Description: <>Start generating <Currency id="Gems" text="10," /> <Currency id="Crystals" text="1" /> per second</>,
-        Cost: { 'Money': 5 },
+        Description: <>Unlock the </>,
+        Cost: { 'Money': 10 },
         OnBought: () => {
-          addBase('Gems', 10)
-          setInterval(() => addCurrency('Gems'), 1000);
-          addBase('Crystals', 1)
-          setInterval(() => addCurrency('Crystals'), 1000);
+          // pinIfNotPinned('')
+          // setGameState('', true)
         }
-      })
-    ],
-    LoadPriority: 1,
-    Requirements: ['#10'], Unlocks: [],
-  },
-  '#12': {
-    Label: 'more was content added',
-    Levels: [
-      level({
-        Description: <Currency id="Money" text="50x money" />,
-        Cost: { 'Money': 5 },
-        OnBought: () => addMulti('Money', 50)
       })
     ],
     LoadPriority: 1,

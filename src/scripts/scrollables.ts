@@ -2,23 +2,24 @@ import { getGameState, setGameState } from "./gameStates";
 
 type ScrollableName = keyof typeof scrollables;
 type ScrollableItem = {
-  display: string,
-  index: number,
+  className: string
+  display: string
+  index: number
 }
 
 type Pinned = Partial<Record<ScrollableName, boolean>>
 
+const defaultStyle = 'font-[montserrat] font-medium text-amber-700 px-2 py-1'
+
 const scrollables = {
   MoneyBooster: {
+    className: defaultStyle,
     display: 'Money boosting machine',
     index: 0
   },
-  MoneyBooster3: {
-    display: 'Money 3boosting machine',
-    index: 2
-  },
-  MoneyBooster2: {
-    display: 'Money 2boosting machine',
+  ResearchCenter: {
+    className: defaultStyle,
+    display: 'Research center',
     index: 1
   },
 } satisfies Record<string, ScrollableItem>;
@@ -68,5 +69,7 @@ export {
   scrollables,
   pinIfNotPinned, setPin,
   loadSavedPins,
-  type Pinned, type ScrollableName,
+  type Pinned, 
+  type ScrollableName,
+  type ScrollableItem,
 }
