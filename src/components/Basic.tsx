@@ -4,7 +4,8 @@ import Row from "./Row.tsx"
 import Bar from "./Bar.tsx"
 
 import crystalsIcon from '/src/assets/images/crystal.svg'
-import { random, randomFloat, removeFromArray } from "../scripts/utils.ts"
+import crystalsCave from '/src/assets/images/crystalcave.webp'
+import { removeFromArray } from "../scripts/utils.ts"
 import { addCurrency } from "../scripts/currencies.ts"
 import Decimal from "decimal.js"
 
@@ -50,32 +51,14 @@ function CrystalMine() {
     size: number
   }
 
-  function createRandomCrystal() {
-    return {
-      x: random(4, 96),
-      y: random(5, 95),
-      rotate: random(0, 359),
-      bright: random(95, 105),
-      hue: random(-10, 10),
-      size: randomFloat(.9, 1.1)
-    }
-  }
-
-  if (crystals.length === 0) {
-    const toSet: crystal[] = []
-    for (let i = 1; i <= 100; i++) {
-      toSet.push(createRandomCrystal())
-    }
-    setGameState('Crystals', toSet)
-  }
-
   function onHover(index: number) {
     addCurrency('Crystals', Decimal(1))
     setGameState('Crystals', (prev: any) => removeFromArray(prev, index))
   }
 
   return (
-    <div id="CrystalMine" className="w-140 h-100 bg-zinc-500 my-15 relative">
+    <div id="CrystalMine" className="w-140 h-100 mt-20 mb-5 relative flex flex-wrap place-content-center">
+      <img src={crystalsCave} className="w-180 max-w-max h-140 mr-5 mt-2"/>
       {crystals.map((info, index) => {
         return (
           <img key={index} src={crystalsIcon} className="w-10 h-10 absolute p-1"
@@ -121,6 +104,11 @@ function Basic() {
       <Upgrade className="mt-12 ml-30" id='#10' />
       <Upgrade className="mt-15" id="#11" />
       {hasCrystalMine && <CrystalMine />}
+      <Upgrade className="mt-15" id="#12" />
+      <Row className="mt-15">
+        <Upgrade className="" id='#13' />
+        <Upgrade className="mx-5" id='#14' />
+      </Row>
     </div>
   )
 }

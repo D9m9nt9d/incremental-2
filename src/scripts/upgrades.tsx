@@ -223,16 +223,57 @@ const Upgrades: { [key: string]: UpgradeItem } = {
     Label: 'Crystals!',
     Levels: [
       level({
-        Description: <>Unlock the crystal mine</>,
+        Description: <><br />Unlock the crystal cave<br /><br />Spawns one crystal every 5 seconds. Can hold maximum 5 crystals at once</>,
         Cost: { 'Money': 10 },
         OnBought: () => {
           pinIfNotPinned('CrystalMine')
           setGameState('HasCM', true)
+          setGameState('CSTiming', 5000)
         }
       })
     ],
-    LoadPriority: 1,
+    LoadPriority: 5,
     Requirements: ['#10'], Unlocks: [],
+  },
+  '#12': {
+    Label: 'Faster crystals!',
+    Levels: levels(16, {
+      Description: (i) => {
+        const step = 0.25
+        const next = 5 - (i * step)
+        return <>Crystal spawn speed<br />{next + step} -&gt; {next}</>
+      },
+      Cost: (i) => { return { 'Crystals': Math.round(i ** 1.6) } },
+      OnBought: () => () => {
+        setGameState('CSTiming', (prev: number) => prev - 250)
+      }
+    }),
+    LoadPriority: 1,
+    Requirements: [], Unlocks: [],
+  },
+  '#13': {
+    Label: 'More space for crystals!',
+    Levels: levels(15, {
+      Description: (i) => {
+        const step = 1
+        const next = 5 + (i * step)
+        return <>Crystals limit<br />{next - step} -&gt; {next}</>
+      },
+      Cost: (i) => { return { 'Crystals': Math.round(i ** 1.3) } },
+      OnBought: () => () => setGameState('CSMax', (prev: number) => prev + 1)
+    }),
+    LoadPriority: 1,
+    Requirements: ['#12'], Unlocks: [],
+  },
+  '#14': {
+    Label: 'More crystals!',
+    Levels: [level({
+      Description: <>Crystals per spawn<br />1 -&gt; 2</>,
+      Cost: { 'Crystals': 10 },
+      OnBought: () => setGameState('CSAmount', (prev: number) => prev + 1)
+    })],
+    LoadPriority: 1,
+    Requirements: ['#12'], Unlocks: [],
   },
 }
 
@@ -317,6 +358,15 @@ function loadUpgrade(id: string, level: number) {
     catch (e) {
       console.warn(`loadUpgrade - id: ${id}, lvl: ${level}, error: See below`)
       console.error(e)
+
+      if (!upgInfo || !lvls[i]) {
+        console.warn('Clearing local storage because:')
+        console.warn(upgInfo
+          ? `Non existent level: ${i} in upgrade: ${id}`
+          : `Non existent upgrade: ${id}`
+        )
+        localStorage.clear()
+      }
     }
   }
 
