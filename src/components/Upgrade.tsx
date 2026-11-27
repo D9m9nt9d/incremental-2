@@ -1,7 +1,30 @@
 import { Fragment, useState } from 'react'
+import { confetti } from "@tsparticles/confetti";
 import { type UpgradeState, buyUpgrade, getLevel, Upgrades } from '../scripts/upgrades.tsx'
+import { Currencies, formatCurrency, type CurrencyName } from '../scripts/currencies'
 import Currency from './Currency.tsx'
-import { formatCurrency, type CurrencyName } from '../scripts/currencies'
+import { random } from '../scripts/utils.ts';
+
+let confettiContainer: Awaited<ReturnType<typeof confetti>>
+let lastScrollX = window.scrollX
+let lastScrollY = window.scrollY
+
+window.addEventListener('scroll', () => {
+  const dx = window.scrollX - lastScrollX
+  const dy = window.scrollY - lastScrollY
+  lastScrollX = window.scrollX
+  lastScrollY = window.scrollY
+
+  const container = confettiContainer
+  if (!container || container.destroyed) return
+
+  // particle positions use canvas pixels, so scale by the pixel ratio
+  const ratio = container.retina.pixelRatio
+  for (const p of container.particles.filter(() => true)) {
+    p.position.x -= dx * ratio
+    p.position.y -= dy * ratio
+  }
+}, { passive: true })
 
 function Upgrade({ id, className, style }: {
   id: string, className?: string, style?: ''
@@ -27,20 +50,7 @@ function Upgrade({ id, className, style }: {
   const Maxed = !lvlInfo
   if (Maxed) lvlInfo = lvls[level - 1]
 
-  function onClick() {
-    const [success, reason] = buyUpgrade(id)
-    if (!success) {
-      console.warn(reason)
-    } else {
-      console.log('success')
-    }
-  }
-
-  function onRightClick(e: React.MouseEvent<HTMLDivElement>) {
-    e.preventDefault()
-    let [success] = buyUpgrade(id)
-    while (success) [success] = buyUpgrade(id)
-  }
+  const particleColors = ["#e7e9ec", "#d3d8e0", "#acb5c2"]
 
   let cost = null
   if (Maxed) {
@@ -61,7 +71,54 @@ function Upgrade({ id, className, style }: {
           <Currency id={currency} text={formatCurrency(needed) + (currency !== lastKey ? divider : '')} />
         </Fragment>
       )
+      particleColors.push(Currencies[currency].ParticleColor)
     }
+  }
+
+  function doParticles(e: React.MouseEvent<HTMLDivElement>, amount: number) {
+    let { clientX: x, clientY: y } = e;
+
+    // keyboard clicks have no mouse position, use button center just in case
+    if (e.type === 'click' && e.detail === 0) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    }
+
+    confetti({
+      position: {
+        x: (x / window.innerWidth) * 100,
+        y: (y / window.innerHeight) * 100,
+      },
+      spread: 360,
+      count: amount,
+      startVelocity: 10,
+      gravity: 1,
+      decay: 0.9,
+      ticks: 60,
+      scalar: 0.7,
+      shapes: ["circle"],
+      colors: particleColors,
+      flat: true,
+      disableForReducedMotion: false,
+    }).then(container => { confettiContainer = container });
+  }
+
+  function onClick(e: React.MouseEvent<HTMLDivElement>) {
+    const [success, reason] = buyUpgrade(id)
+    if (!success) {
+      console.warn(reason)
+    } else {
+      console.log('success')
+    }
+    doParticles(e, success ? 40 : random(3, 6))
+  }
+
+  function onRightClick(e: React.MouseEvent<HTMLDivElement>) {
+    e.preventDefault()
+    let i = 0
+    while (buyUpgrade(id)[0]) i++
+    doParticles(e, Math.min(random(3, 6) + i * 35, 250))
   }
 
   if (!style) {
@@ -88,7 +145,7 @@ function Upgrade({ id, className, style }: {
       </div>
     )
   } else if (style === '') {
-    
+
   } else {
     console.warn('Invalid upgrade style - ' + style)
   }

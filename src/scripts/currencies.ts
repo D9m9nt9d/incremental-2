@@ -12,6 +12,7 @@ interface CurrencyItem {
   ActiveMultis: {
     [key: string]: Decimal.Value
   }
+  ParticleColor: string
   Category: string
   Icon: string
   states: {
@@ -23,21 +24,22 @@ interface CurrencyItem {
 type CurrencyName = keyof typeof Currencies;
 
 const Currencies = {
-  'Money': createCurrency('Basic', moneyIcon,
+  'Money': createCurrency('Basic', moneyIcon, "#529b5d",
     'text-green-600 font-medium font-[Comic+Neue]', Decimal(0)
   ),
-  'Crystals': createCurrency('Basic', crystalsIcon,
+  'Crystals': createCurrency('Basic', crystalsIcon, "#9261ce",
     'text-purple-600 font-medium font-[Jost]', Decimal(0)
   ),
 } satisfies Record<string, CurrencyItem>;
 
-function createCurrency(category: string, icon: string, className: string, value: Decimal.Instance): CurrencyItem {
+function createCurrency(category: string, icon: string, particleColor: string, className: string, value: Decimal.Instance): CurrencyItem {
   return {
     Value: value,
     Per: Decimal(0),
     Base: Decimal(0),
     Multis: Decimal(1),
     ActiveMultis: {},
+    ParticleColor: particleColor,
     Category: category,
     Icon: icon,
     className: className,
